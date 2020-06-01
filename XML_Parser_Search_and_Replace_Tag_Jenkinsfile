@@ -1,0 +1,100 @@
+pipeline
+{
+    environment
+    {
+        WORKSPACE = "${workspace}"
+        check_str="apple"
+        //file_name="aem.xml"
+        //file_name="hypom.xml"
+        file_name="pom.xml"
+        target_string="PRADEEP"
+        out_file="New_${file_name}"
+        source_file="source.txt"
+    }
+
+    agent any
+    
+    stages
+    {
+        stage('Clean Workspace')
+        {
+            steps
+            {
+                cleanWs()
+            }
+        }
+    
+        stage('Copy xml files to Workspace')
+	    {
+		    steps
+		    {
+			    sh '''
+			    cp /Users/Shared/Jenkins/pradeep/${file_name} ${WORKSPACE}
+			    '''
+		    }
+	    }
+	    
+	    stage('Search in XML')
+        {
+            steps
+            {
+                script
+                {
+                    def xmlcontent = new XmlSlurper().parse("${workspace}/${file_name}")
+                    def name=""
+				    xmlcontent.each
+				    {
+				        bk->
+         			    //print("Group ID:")
+         			    //println "${bk.groupId}"
+         			    //print("Artifact ID:")
+         			    //println "${bk.artifactId}"
+         			    //print("Version ID:")
+         			    //println "${bk.version}"
+         			    name=bk.version
+			        }
+			        check_str = "+namme+"
+			        def logFile = new File("${workspace}/${source_file}")
+                    logFile.append(name)
+                }
+            }
+		}
+		
+		stage ('update xml')
+		{
+		    steps
+		    {
+		        dir("${workspace}")
+		        {
+                    sh '''
+                    echo "Pradeep vimal: ${check_str}"
+			        source_string=`cat ${source_file}`
+			        sed "s/$source_string/$target_string/1" ${file_name} > ${out_file}
+			        cat ${out_file}
+		            '''
+		        }
+		    }
+		}
+		// Remove previous builds, keep the last three builds performed in the last 30 days
+        stage('Cleanup Previous Builds')
+        {
+            steps
+            {
+                script
+                {
+                    //Previous Build Cleanup
+                    properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '3', numToKeepStr: '1')), pipelineTriggers([])])
+                }
+            }
+        } 
+    }
+
+    post 
+    {
+        always
+        {
+            //Clean Workspace
+            cleanWs()
+        }
+    }
+}
