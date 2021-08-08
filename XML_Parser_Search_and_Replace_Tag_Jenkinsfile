@@ -29,7 +29,7 @@ pipeline
 		    steps
 		    {
 			    sh '''
-			    cp /Users/pradeep.vimal/Downloads/jenkins_home/test_files/${file_name} ${WORKSPACE}
+			    cp /Users/Shared/Jenkins/pradeep/${file_name} ${WORKSPACE}
 			    '''
 		    }
 	    }
